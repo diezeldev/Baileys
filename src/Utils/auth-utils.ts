@@ -115,18 +115,22 @@ export const initAuthCreds = (): AuthenticationCreds => {
 /** stores the full authentication state in a single JSON file */
 export const useSingleFileAuthState = (filename: string, logger?: Logger): { state: AuthenticationState, saveState: () => void } => {
 	// require fs here so that in case "fs" is not available -- the app does not crash
-	const { readFileSync, writeFileSync, existsSync } = require('fs')
+	const { readFileSync, writeFileSync, existsSync, renameSync } = require('fs')
 	let creds: AuthenticationCreds
 	let keys: any = { }
 
 	// save the authentication state to a file
 	const saveState = () => {
 		logger && logger.trace('saving auth state')
+
+		let temporaryFilename = `${filename}.temp`
+
 		writeFileSync(
-			filename,
+			temporaryFilename,
 			// BufferJSON replacer utility saves buffers nicely
 			JSON.stringify({ creds, keys }, BufferJSON.replacer, 2)
 		)
+		renameSync(temporaryFilename, filename)
 	}
 
 	if(existsSync(filename)) {
